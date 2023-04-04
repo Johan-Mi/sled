@@ -1,6 +1,6 @@
-use crate::display_error;
+use crate::{command::Command, display_error};
 use ropey::Rope;
-use std::{fs::File, io::Write, path::Path};
+use std::{fs::File, io::Write, ops::ControlFlow, path::Path};
 
 pub struct Editor {
     text: Rope,
@@ -19,16 +19,31 @@ impl Editor {
         self.text = text;
     }
 
-    pub fn read_and_run_command(&mut self) {
+    pub fn read_and_run_command(&mut self) -> ControlFlow<()> {
         print!("> ");
         std::io::stdout().flush().ok();
         let mut input = String::new();
         if std::io::stdin().read_line(&mut input).is_err() {
-            return;
+            return ControlFlow::Continue(());
         }
         let input = input.trim();
-        match input {
-            _ => display_error(format_args!("invalid command: {input}")),
+        if input.is_empty() {
+            return ControlFlow::Continue(());
+        }
+
+        let command: Command = match input.parse() {
+            Ok(command) => command,
+            Err(err) => {
+                display_error(err);
+                return ControlFlow::Continue(());
+            }
+        };
+        self.run_command(&command)
+    }
+
+    fn run_command(&mut self, command: &Command) -> ControlFlow<()> {
+        match command {
+            Command::Quit => ControlFlow::Break(()),
         }
     }
 }

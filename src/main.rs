@@ -6,6 +6,7 @@
 )]
 #![warn(clippy::nursery, clippy::pedantic)]
 
+mod command;
 mod editor;
 
 use std::{fmt::Display, path::Path, process::ExitCode};
@@ -21,9 +22,9 @@ fn main() -> ExitCode {
         editor.open(Path::new(&path));
     }
 
-    loop {
-        editor.read_and_run_command();
-    }
+    while editor.read_and_run_command().is_continue() {}
+
+    ExitCode::SUCCESS
 }
 
 fn display_error(message: impl Display) {
