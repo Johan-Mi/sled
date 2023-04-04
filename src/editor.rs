@@ -1,6 +1,6 @@
 use crate::display_error;
 use ropey::Rope;
-use std::{fs::File, path::Path};
+use std::{fs::File, io::Write, path::Path};
 
 pub struct Editor {
     text: Rope,
@@ -20,6 +20,15 @@ impl Editor {
     }
 
     pub fn read_and_run_command(&mut self) {
-        todo!();
+        print!("> ");
+        std::io::stdout().flush().ok();
+        let mut input = String::new();
+        if std::io::stdin().read_line(&mut input).is_err() {
+            return;
+        }
+        let input = input.trim();
+        match input {
+            _ => display_error(format_args!("invalid command: {input}")),
+        }
     }
 }

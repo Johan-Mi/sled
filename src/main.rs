@@ -8,7 +8,7 @@
 
 mod editor;
 
-use std::{path::Path, process::ExitCode};
+use std::{fmt::Display, path::Path, process::ExitCode};
 
 fn main() -> ExitCode {
     let mut args = std::env::args_os();
@@ -26,6 +26,6 @@ fn main() -> ExitCode {
     }
 }
 
-fn display_error(message: &str) {
+fn display_error(message: impl Display) {
     println!("Error: {message}");
 }
