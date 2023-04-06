@@ -4,14 +4,23 @@ use std::{fs::File, io::Write, ops::ControlFlow, path::Path};
 
 pub struct Editor {
     text: Rope,
+    has_unsaved_changes: bool,
 }
 
 impl Editor {
     pub fn new() -> Self {
-        Self { text: Rope::new() }
+        Self {
+            text: Rope::new(),
+            has_unsaved_changes: false,
+        }
     }
 
     pub fn open(&mut self, path: &Path) {
+        if self.has_unsaved_changes {
+            display_error("current file has unsaved changes");
+            return;
+        }
+
         let Ok(text) = File::open(path).and_then(Rope::from_reader) else {
             display_error("failed to open file");
             return;
@@ -43,7 +52,14 @@ impl Editor {
 
     fn run_command(&mut self, command: &Command) -> ControlFlow<()> {
         match command {
-            Command::Quit => ControlFlow::Break(()),
+            Command::Quit => {
+                if self.has_unsaved_changes {
+                    display_error("current file has unsaved changes");
+                    ControlFlow::Continue(())
+                } else {
+                    ControlFlow::Break(())
+                }
+            }
         }
     }
 }
