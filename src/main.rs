@@ -30,3 +30,7 @@ fn main() -> ExitCode {
 fn display_error(message: impl Display) {
     println!("Error: {message}");
 }
+
+fn display_warning(message: impl Display) {
+    println!("Warning: {message}");
+}

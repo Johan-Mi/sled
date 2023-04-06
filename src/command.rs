@@ -2,6 +2,7 @@ use std::{fmt, str::FromStr};
 
 pub enum Command {
     Quit,
+    ForceQuit,
 }
 
 impl FromStr for Command {
@@ -10,6 +11,7 @@ impl FromStr for Command {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "q" => Ok(Self::Quit),
+            "Q" => Ok(Self::ForceQuit),
             _ => Err(ParseError::UnspecificSyntaxErrorTodoRemoveThis),
         }
     }

@@ -1,4 +1,4 @@
-use crate::{command::Command, display_error};
+use crate::{command::Command, display_error, display_warning};
 use ropey::Rope;
 use std::{fs::File, io::Write, ops::ControlFlow, path::Path};
 
@@ -59,6 +59,12 @@ impl Editor {
                 } else {
                     ControlFlow::Break(())
                 }
+            }
+            Command::ForceQuit => {
+                if self.has_unsaved_changes {
+                    display_warning("discarding unsaved changes");
+                }
+                ControlFlow::Break(())
             }
         }
     }
