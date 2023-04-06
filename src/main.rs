@@ -4,7 +4,7 @@
     clippy::unwrap_used,
     clippy::indexing_slicing
 )]
-#![warn(clippy::nursery, clippy::pedantic)]
+#![warn(clippy::nursery, clippy::pedantic, clippy::cargo)]
 
 mod command;
 mod editor;
