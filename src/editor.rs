@@ -91,6 +91,33 @@ impl Editor {
                 print!("{}", self.text);
                 ControlFlow::Continue(())
             }
+            Command::Info => {
+                let lines = self.text.len_lines();
+                let code_points = self.text.len_chars();
+                let bytes = self.text.len_bytes();
+                let all_ascii = if code_points == bytes {
+                    ", all ASCII"
+                } else {
+                    ""
+                };
+                println!(
+                    "{lines} line{}, \
+                     {code_points} code point{}, \
+                     {bytes} byte{}{all_ascii}",
+                    plural_s(lines),
+                    plural_s(code_points),
+                    plural_s(bytes),
+                );
+                ControlFlow::Continue(())
+            }
         }
+    }
+}
+
+const fn plural_s(count: usize) -> &'static str {
+    if count == 1 {
+        ""
+    } else {
+        "s"
     }
 }

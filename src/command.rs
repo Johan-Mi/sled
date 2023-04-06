@@ -4,6 +4,7 @@ pub enum Command {
     Quit { force: bool },
     Write { quit: bool },
     Print,
+    Info,
 }
 
 impl FromStr for Command {
@@ -16,6 +17,7 @@ impl FromStr for Command {
             "w" => Ok(Self::Write { quit: false }),
             "wq" => Ok(Self::Write { quit: true }),
             "p" => Ok(Self::Print),
+            "?" => Ok(Self::Info),
             _ => Err(ParseError::UnspecificSyntaxErrorTodoRemoveThis),
         }
     }
