@@ -9,7 +9,7 @@
 mod command;
 mod editor;
 
-use std::{fmt::Display, path::Path, process::ExitCode};
+use std::{fmt::Display, process::ExitCode};
 
 fn main() -> ExitCode {
     let mut args = std::env::args_os();
@@ -19,7 +19,7 @@ fn main() -> ExitCode {
     }
     let mut editor = editor::Editor::new();
     if let Some(path) = args.nth(1) {
-        editor.open(Path::new(&path));
+        editor.open(path.into());
     }
 
     while editor.read_and_run_command().is_continue() {}

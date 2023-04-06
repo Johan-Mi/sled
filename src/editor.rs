@@ -1,9 +1,10 @@
 use crate::{command::Command, display_error, display_warning};
 use ropey::Rope;
-use std::{fs::File, io::Write, ops::ControlFlow, path::Path};
+use std::{fs::File, io::Write, ops::ControlFlow, path::PathBuf};
 
 pub struct Editor {
     text: Rope,
+    path: Option<PathBuf>,
     has_unsaved_changes: bool,
 }
 
@@ -11,21 +12,23 @@ impl Editor {
     pub fn new() -> Self {
         Self {
             text: Rope::new(),
+            path: None,
             has_unsaved_changes: false,
         }
     }
 
-    pub fn open(&mut self, path: &Path) {
+    pub fn open(&mut self, path: PathBuf) {
         if self.has_unsaved_changes {
             display_error("current file has unsaved changes");
             return;
         }
 
-        let Ok(text) = File::open(path).and_then(Rope::from_reader) else {
+        let Ok(text) = File::open(&path).and_then(Rope::from_reader) else {
             display_error("failed to open file");
             return;
         };
         self.text = text;
+        self.path = Some(path);
     }
 
     pub fn read_and_run_command(&mut self) -> ControlFlow<()> {
