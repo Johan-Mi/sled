@@ -54,7 +54,7 @@ impl Editor {
     }
 
     fn run_command(&mut self, command: &Command) -> ControlFlow<()> {
-        match command {
+        match *command {
             Command::Quit => {
                 if self.has_unsaved_changes {
                     display_error("current file has unsaved changes");
@@ -68,6 +68,27 @@ impl Editor {
                     display_warning("discarding unsaved changes");
                 }
                 ControlFlow::Break(())
+            }
+            Command::Write { quit } => {
+                let Some(path) = &self.path else {
+                    display_error("no path provided");
+                    return ControlFlow::Continue(())
+                };
+                if File::create(path)
+                    .and_then(|file| self.text.write_to(file))
+                    .is_err()
+                {
+                    display_error("failed to write file");
+                    return ControlFlow::Continue(());
+                }
+
+                self.has_unsaved_changes = false;
+
+                if quit {
+                    ControlFlow::Break(())
+                } else {
+                    ControlFlow::Continue(())
+                }
             }
         }
     }
