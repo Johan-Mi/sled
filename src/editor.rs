@@ -87,6 +87,10 @@ impl Editor {
                     ControlFlow::Continue(())
                 }
             }
+            Command::Print => {
+                print!("{}", self.text);
+                ControlFlow::Continue(())
+            }
         }
     }
 }
