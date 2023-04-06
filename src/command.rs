@@ -1,8 +1,7 @@
 use std::{fmt, str::FromStr};
 
 pub enum Command {
-    Quit,
-    ForceQuit,
+    Quit { force: bool },
     Write { quit: bool },
 }
 
@@ -11,8 +10,8 @@ impl FromStr for Command {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "q" => Ok(Self::Quit),
-            "Q" => Ok(Self::ForceQuit),
+            "q" => Ok(Self::Quit { force: false }),
+            "Q" => Ok(Self::Quit { force: true }),
             "w" => Ok(Self::Write { quit: false }),
             "wq" => Ok(Self::Write { quit: true }),
             _ => Err(ParseError::UnspecificSyntaxErrorTodoRemoveThis),

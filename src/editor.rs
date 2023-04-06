@@ -55,17 +55,14 @@ impl Editor {
 
     fn run_command(&mut self, command: &Command) -> ControlFlow<()> {
         match *command {
-            Command::Quit => {
+            Command::Quit { force } => {
                 if self.has_unsaved_changes {
-                    display_error("current file has unsaved changes");
-                    ControlFlow::Continue(())
-                } else {
-                    ControlFlow::Break(())
-                }
-            }
-            Command::ForceQuit => {
-                if self.has_unsaved_changes {
-                    display_warning("discarding unsaved changes");
+                    if force {
+                        display_warning("discarding unsaved changes");
+                    } else {
+                        display_error("current file has unsaved changes");
+                        return ControlFlow::Continue(());
+                    }
                 }
                 ControlFlow::Break(())
             }
