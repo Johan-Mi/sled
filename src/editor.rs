@@ -113,6 +113,15 @@ impl Editor {
                 );
                 ControlFlow::Continue(())
             }
+            Command::Append => {
+                let Ok(new_text) = read_text_block() else {
+                    return ControlFlow::Continue(());
+                };
+                let end = self.text.len_chars();
+                self.text.insert(end, &new_text);
+                self.has_unsaved_changes = true;
+                ControlFlow::Continue(())
+            }
         }
     }
 }
@@ -123,4 +132,20 @@ const fn plural_s(count: usize) -> &'static str {
     } else {
         "s"
     }
+}
+
+fn read_text_block() -> std::io::Result<String> {
+    let mut input = String::new();
+    loop {
+        std::io::stdin().read_line(&mut input)?;
+        if input.ends_with("\n.\n") {
+            input.pop();
+            input.pop();
+            break;
+        } else if input.ends_with("\n.") {
+            input.pop();
+            break;
+        }
+    }
+    Ok(input)
 }
