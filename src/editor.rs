@@ -92,7 +92,7 @@ impl Editor {
                 ControlFlow::Continue(())
             }
             Command::Info => {
-                let lines = self.text.len_lines();
+                let lines = self.text.len_lines() - 1;
                 let code_points = self.text.len_chars();
                 let bytes = self.text.len_bytes();
                 if let Some(path) = &self.path {
