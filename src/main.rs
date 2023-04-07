@@ -27,10 +27,32 @@ fn main() -> ExitCode {
     ExitCode::SUCCESS
 }
 
+#[cfg(feature = "color")]
+fn display_error(message: impl Display) {
+    use owo_colors::{OwoColorize, Stream::Stdout, Style};
+    println!(
+        "{}: {message}",
+        "Error".if_supports_color(Stdout, |text| text
+            .style(Style::new().red().bold()))
+    );
+}
+
+#[cfg(not(feature = "color"))]
 fn display_error(message: impl Display) {
     println!("Error: {message}");
 }
 
+#[cfg(feature = "color")]
+fn display_warning(message: impl Display) {
+    use owo_colors::{OwoColorize, Stream::Stdout, Style};
+    println!(
+        "{}: {message}",
+        "Warning".if_supports_color(Stdout, |text| text
+            .style(Style::new().yellow().bold()))
+    );
+}
+
+#[cfg(not(feature = "color"))]
 fn display_warning(message: impl Display) {
     println!("Warning: {message}");
 }
