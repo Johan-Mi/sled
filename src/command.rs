@@ -24,6 +24,7 @@ impl FromStr for Command {
 }
 
 pub enum ParseError {
+    #[deprecated]
     UnspecificSyntaxErrorTodoRemoveThis,
 }
 
