@@ -3,7 +3,7 @@ use std::{fmt, str::FromStr};
 pub enum Command {
     Quit { force: bool },
     Write { quit: bool },
-    Print,
+    Print { numbered: bool },
     Info,
     Append,
 }
@@ -17,7 +17,8 @@ impl FromStr for Command {
             "Q" => Ok(Self::Quit { force: true }),
             "w" => Ok(Self::Write { quit: false }),
             "wq" => Ok(Self::Write { quit: true }),
-            "p" => Ok(Self::Print),
+            "p" => Ok(Self::Print { numbered: false }),
+            "n" => Ok(Self::Print { numbered: true }),
             "?" => Ok(Self::Info),
             "a" => Ok(Self::Append),
             _ => Err(ParseError::UnspecificSyntaxErrorTodoRemoveThis),

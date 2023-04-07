@@ -87,8 +87,19 @@ impl Editor {
                     ControlFlow::Continue(())
                 }
             }
-            Command::Print => {
-                print!("{}", self.text);
+            Command::Print { numbered } => {
+                if numbered {
+                    for (line_number, line) in self
+                        .text
+                        .lines()
+                        .enumerate()
+                        .take_while(|(_, line)| line.len_bytes() != 0)
+                    {
+                        print!("{}\t{line}", line_number + 1);
+                    }
+                } else {
+                    print!("{}", self.text);
+                }
                 ControlFlow::Continue(())
             }
             Command::Info => {
