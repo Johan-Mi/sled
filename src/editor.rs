@@ -95,6 +95,9 @@ impl Editor {
                 let lines = self.text.len_lines();
                 let code_points = self.text.len_chars();
                 let bytes = self.text.len_bytes();
+                if let Some(path) = &self.path {
+                    print!("{}: ", path.display())
+                }
                 let all_ascii = if code_points == bytes {
                     ", all ASCII"
                 } else {
