@@ -13,6 +13,7 @@ impl FromStr for Command {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "" => Err(ParseError::UnexpectedEndOfCommand),
             "q" => Ok(Self::Quit { force: false }),
             "Q" => Ok(Self::Quit { force: true }),
             "w" => Ok(Self::Write { quit: false }),
@@ -21,21 +22,24 @@ impl FromStr for Command {
             "n" => Ok(Self::Print { numbered: true }),
             "?" => Ok(Self::Info),
             "a" => Ok(Self::Append),
-            _ => Err(ParseError::UnspecificSyntaxErrorTodoRemoveThis),
+            _ => Err(ParseError::UnexpectedCharacter),
         }
     }
 }
 
 pub enum ParseError {
-    #[deprecated]
-    UnspecificSyntaxErrorTodoRemoveThis,
+    UnexpectedEndOfCommand,
+    UnexpectedCharacter,
 }
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::UnspecificSyntaxErrorTodoRemoveThis => {
-                f.write_str("syntax error")
+            Self::UnexpectedEndOfCommand => {
+                f.write_str("unexpected end of command")
+            }
+            Self::UnexpectedCharacter => {
+                f.write_str("unexpected character")
             }
         }
     }
