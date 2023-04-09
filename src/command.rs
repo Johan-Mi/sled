@@ -38,9 +38,7 @@ impl fmt::Display for ParseError {
             Self::UnexpectedEndOfCommand => {
                 f.write_str("unexpected end of command")
             }
-            Self::UnexpectedCharacter => {
-                f.write_str("unexpected character")
-            }
+            Self::UnexpectedCharacter => f.write_str("unexpected character"),
         }
     }
 }
