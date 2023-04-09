@@ -103,9 +103,13 @@ fn location(s: &str) -> Result<(&str, Location), ParseError> {
                 RangeSeparator::Comma,
                 Address::Absolute(1)..=end.unwrap_or(Address::Last),
             ),
-            (Some(start), end, _) => {
-                Location::Range(separator, start..=end.unwrap_or(start))
+            (Some(start), Some(end), _) => {
+                Location::Range(separator, start..=end)
             }
+            (Some(start), None, _) => Location::Range(
+                RangeSeparator::Semicolon,
+                start..=Address::Relative(0),
+            ),
         },
     ))
 }
