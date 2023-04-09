@@ -1,4 +1,4 @@
-use std::{fmt, str::FromStr};
+use std::{fmt, num::IntErrorKind, ops::RangeInclusive, str::FromStr};
 
 pub enum Command {
     Quit { force: bool },
@@ -12,6 +12,7 @@ impl FromStr for Command {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (s, location) = location(s)?;
         match s {
             "" => Err(ParseError::UnexpectedEndOfCommand),
             "q" => Ok(Self::Quit { force: false }),
@@ -27,9 +28,99 @@ impl FromStr for Command {
     }
 }
 
+#[derive(Clone, Copy)]
+pub enum Address {
+    Absolute(usize),
+    Relative(isize),
+    Last,
+}
+
+fn address(s: &str) -> Result<(&str, Option<Address>), ParseError> {
+    Ok(if s.starts_with(|c: char| c.is_ascii_digit()) {
+        let (digits, s) = split_leading_digits(s);
+        let line_number =
+            digits.parse().map_err(|_| ParseError::AddressOutOfBounds)?;
+        (s, Some(Address::Absolute(line_number)))
+    } else if let Some(s) = s.strip_prefix('+') {
+        // TODO: repeated `+`
+        let (digits, s) = split_leading_digits(s);
+        let offset =
+            digits.parse::<isize>().or_else(|err| match err.kind() {
+                IntErrorKind::Empty => Ok(1),
+                _ => Err(ParseError::AddressOutOfBounds),
+            })?;
+        (s, Some(Address::Relative(offset)))
+    } else if let Some(s) = s.strip_prefix('-') {
+        // TODO: repeated `-`
+        let (digits, s) = split_leading_digits(s);
+        let offset =
+            digits.parse::<isize>().or_else(|err| match err.kind() {
+                IntErrorKind::Empty => Ok(1),
+                _ => Err(ParseError::AddressOutOfBounds),
+            })?;
+        (s, Some(Address::Relative(-offset)))
+    } else if let Some(s) = s.strip_prefix('.') {
+        (s, Some(Address::Relative(0)))
+    } else if let Some(s) = s.strip_prefix('$') {
+        (s, Some(Address::Last))
+    } else if s.starts_with(['/', '?']) {
+        // TODO: regex
+        return Err(ParseError::RegexNotSupportedYet);
+    } else {
+        (s, None)
+    })
+}
+
+fn split_leading_digits(s: &str) -> (&str, &str) {
+    let first_non_digit =
+        s.find(|c: char| !c.is_ascii_digit()).unwrap_or(s.len());
+    s.split_at(first_non_digit)
+}
+
+pub enum Location {
+    None,
+    Single(Address),
+    Range(RangeSeparator, RangeInclusive<Address>),
+}
+
+fn location(s: &str) -> Result<(&str, Location), ParseError> {
+    let (s, start) = address(s)?;
+    let ((s, end), separator) = if let Some(s) = s.strip_prefix(',') {
+        (address(s)?, RangeSeparator::Comma)
+    } else if let Some(s) = s.strip_prefix(';') {
+        (address(s)?, RangeSeparator::Semicolon)
+    } else {
+        return Ok((s, start.map_or(Location::None, Location::Single)));
+    };
+    Ok((
+        s,
+        match (start, end, separator) {
+            (None, Some(end), RangeSeparator::Semicolon) => Location::Range(
+                RangeSeparator::Semicolon,
+                Address::Relative(0)..=end,
+            ),
+            (None, end, _) => Location::Range(
+                RangeSeparator::Comma,
+                Address::Absolute(1)..=end.unwrap_or(Address::Last),
+            ),
+            (Some(start), end, _) => {
+                Location::Range(separator, start..=end.unwrap_or(start))
+            }
+        },
+    ))
+}
+
+#[derive(Clone, Copy)]
+pub enum RangeSeparator {
+    Comma,
+    Semicolon,
+}
+
 pub enum ParseError {
     UnexpectedEndOfCommand,
     UnexpectedCharacter,
+    AddressOutOfBounds,
+    RegexNotSupportedYet,
 }
 
 impl fmt::Display for ParseError {
@@ -39,6 +130,10 @@ impl fmt::Display for ParseError {
                 f.write_str("unexpected end of command")
             }
             Self::UnexpectedCharacter => f.write_str("unexpected character"),
+            Self::AddressOutOfBounds => f.write_str("address out of bounds"),
+            Self::RegexNotSupportedYet => {
+                f.write_str("regular expressions are not supported yet")
+            }
         }
     }
 }
