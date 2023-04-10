@@ -56,11 +56,11 @@ impl Editor {
                 return ControlFlow::Continue(());
             }
         };
-        self.run_command(&command)
+        self.run_command(command)
     }
 
-    fn run_command(&mut self, command: &Command) -> ControlFlow<()> {
-        match *command {
+    fn run_command(&mut self, command: Command) -> ControlFlow<()> {
+        match command {
             Command::Quit { force } => {
                 if self.has_unsaved_changes {
                     if force {
@@ -72,7 +72,7 @@ impl Editor {
                 }
                 ControlFlow::Break(())
             }
-            Command::Write { quit } => {
+            Command::Write { location, quit } => {
                 let Some(path) = &self.path else {
                     display_error("no path provided");
                     return ControlFlow::Continue(())
@@ -93,7 +93,7 @@ impl Editor {
                     ControlFlow::Continue(())
                 }
             }
-            Command::Print { numbered } => {
+            Command::Print { location, numbered } => {
                 if numbered {
                     for (line_number, line) in self
                         .text
@@ -130,7 +130,7 @@ impl Editor {
                 );
                 ControlFlow::Continue(())
             }
-            Command::Append => {
+            Command::Append { location } => {
                 let Ok(new_text) = self.read_text_block() else {
                     return ControlFlow::Break(());
                 };

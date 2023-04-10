@@ -2,10 +2,10 @@ use std::{fmt, num::IntErrorKind, ops::RangeInclusive, str::FromStr};
 
 pub enum Command {
     Quit { force: bool },
-    Write { quit: bool },
-    Print { numbered: bool },
+    Write { location: Location, quit: bool },
+    Print { location: Location, numbered: bool },
     Info,
-    Append,
+    Append { location: Location },
 }
 
 impl FromStr for Command {
@@ -23,21 +23,27 @@ impl FromStr for Command {
                 location.none()?;
                 Ok(Self::Quit { force: true })
             }
-            "w" => {
-                location.none()?;
-                Ok(Self::Write { quit: false })
-            }
-            "wq" => {
-                location.none()?;
-                Ok(Self::Write { quit: true })
-            }
-            "p" => Ok(Self::Print { numbered: false }),
-            "n" => Ok(Self::Print { numbered: true }),
+            "w" => Ok(Self::Write {
+                location,
+                quit: false,
+            }),
+            "wq" => Ok(Self::Write {
+                location,
+                quit: true,
+            }),
+            "p" => Ok(Self::Print {
+                location,
+                numbered: false,
+            }),
+            "n" => Ok(Self::Print {
+                location,
+                numbered: true,
+            }),
             "?" => {
                 location.none()?;
                 Ok(Self::Info)
             }
-            "a" => Ok(Self::Append),
+            "a" => Ok(Self::Append { location }),
             _ => Err(ParseError::UnexpectedCharacter),
         }
     }
