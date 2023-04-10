@@ -1,8 +1,14 @@
 use crate::{command::Command, display_error, display_warning};
 use ropey::Rope;
-use std::{fs::File, io::Write, ops::ControlFlow, path::PathBuf};
+use std::{
+    fs::File,
+    io::{Lines, StdinLock, Write},
+    ops::ControlFlow,
+    path::PathBuf,
+};
 
 pub struct Editor {
+    input: Lines<StdinLock<'static>>,
     text: Rope,
     path: Option<PathBuf>,
     has_unsaved_changes: bool,
@@ -11,6 +17,7 @@ pub struct Editor {
 impl Editor {
     pub fn new() -> Self {
         Self {
+            input: std::io::stdin().lines(),
             text: Rope::new(),
             path: None,
             has_unsaved_changes: false,
@@ -34,10 +41,9 @@ impl Editor {
     pub fn read_and_run_command(&mut self) -> ControlFlow<()> {
         print!("> ");
         std::io::stdout().flush().ok();
-        let mut input = String::new();
-        if std::io::stdin().read_line(&mut input).is_err() {
-            return ControlFlow::Continue(());
-        }
+        let Some(input) = self.input.next().and_then(Result::ok) else {
+            return ControlFlow::Break(());
+        };
         let input = input.trim();
         if input.is_empty() {
             return ControlFlow::Continue(());
@@ -125,8 +131,8 @@ impl Editor {
                 ControlFlow::Continue(())
             }
             Command::Append => {
-                let Ok(new_text) = read_text_block() else {
-                    return ControlFlow::Continue(());
+                let Ok(new_text) = self.read_text_block() else {
+                    return ControlFlow::Break(());
                 };
                 let end = self.text.len_chars();
                 self.text.insert(end, &new_text);
@@ -134,6 +140,19 @@ impl Editor {
                 ControlFlow::Continue(())
             }
         }
+    }
+
+    fn read_text_block(&mut self) -> std::io::Result<String> {
+        let mut input = String::new();
+        let lines = self
+            .input
+            .by_ref()
+            .take_while(|line| !matches!(line.as_deref(), Ok(".")));
+        for line in lines {
+            input.push_str(&line?);
+            input.push('\n');
+        }
+        Ok(input)
     }
 }
 
@@ -143,20 +162,4 @@ const fn plural_s(count: usize) -> &'static str {
     } else {
         "s"
     }
-}
-
-fn read_text_block() -> std::io::Result<String> {
-    let mut input = String::new();
-    loop {
-        std::io::stdin().read_line(&mut input)?;
-        if input.ends_with("\n.\n") {
-            input.pop();
-            input.pop();
-            break;
-        } else if input.ends_with("\n.") {
-            input.pop();
-            break;
-        }
-    }
-    Ok(input)
 }
