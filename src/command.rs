@@ -15,13 +15,28 @@ impl FromStr for Command {
         let (s, location) = location(s)?;
         match s {
             "" => Err(ParseError::UnexpectedEndOfCommand),
-            "q" => Ok(Self::Quit { force: false }),
-            "Q" => Ok(Self::Quit { force: true }),
-            "w" => Ok(Self::Write { quit: false }),
-            "wq" => Ok(Self::Write { quit: true }),
+            "q" => {
+                location.none()?;
+                Ok(Self::Quit { force: false })
+            }
+            "Q" => {
+                location.none()?;
+                Ok(Self::Quit { force: true })
+            }
+            "w" => {
+                location.none()?;
+                Ok(Self::Write { quit: false })
+            }
+            "wq" => {
+                location.none()?;
+                Ok(Self::Write { quit: true })
+            }
             "p" => Ok(Self::Print { numbered: false }),
             "n" => Ok(Self::Print { numbered: true }),
-            "?" => Ok(Self::Info),
+            "?" => {
+                location.none()?;
+                Ok(Self::Info)
+            }
             "a" => Ok(Self::Append),
             _ => Err(ParseError::UnexpectedCharacter),
         }
@@ -83,6 +98,15 @@ pub enum Location {
     Range(RangeSeparator, RangeInclusive<Address>),
 }
 
+impl Location {
+    const fn none(&self) -> Result<(), ParseError> {
+        match self {
+            Self::None => Ok(()),
+            _ => Err(ParseError::CommandDoesNotAcceptLocation),
+        }
+    }
+}
+
 fn location(s: &str) -> Result<(&str, Location), ParseError> {
     let (s, start) = address(s)?;
     let ((s, end), separator) = if let Some(s) = s.strip_prefix(',') {
@@ -125,6 +149,7 @@ pub enum ParseError {
     UnexpectedCharacter,
     AddressOutOfBounds,
     RegexNotSupportedYet,
+    CommandDoesNotAcceptLocation,
 }
 
 impl fmt::Display for ParseError {
@@ -137,6 +162,9 @@ impl fmt::Display for ParseError {
             Self::AddressOutOfBounds => f.write_str("address out of bounds"),
             Self::RegexNotSupportedYet => {
                 f.write_str("regular expressions are not supported yet")
+            }
+            Self::CommandDoesNotAcceptLocation => {
+                f.write_str("command does not accept an address or range")
             }
         }
     }
