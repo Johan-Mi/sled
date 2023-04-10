@@ -36,6 +36,13 @@ impl Editor {
         };
         self.text = text;
         self.path = Some(path);
+
+        if let Some(last_char_index) = self.text.len_chars().checked_sub(1) {
+            if self.text.char(last_char_index) != '\n' {
+                display_warning("file had no trailing new line");
+                self.text.insert(last_char_index + 1, "\n");
+            }
+        }
     }
 
     pub fn read_and_run_command(&mut self) -> ControlFlow<()> {
