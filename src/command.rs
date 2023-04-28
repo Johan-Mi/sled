@@ -39,7 +39,7 @@ impl FromStr for Command {
                 location,
                 numbered: true,
             }),
-            "?" => {
+            "h" => {
                 location.none()?;
                 Ok(Self::Info)
             }
